@@ -1,13 +1,13 @@
 import requests
 import traceback as tb
 from pydantic import BaseModel
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 
 class PricerInput(BaseModel):
     # mirroring the (default) wrapper; convenient to turn into a client library
     smiles: str
-    source: Optional[Union[str, List[str]]] = None
+    source: str | list[str] | None = None
     canonicalize: bool
 
 
@@ -29,7 +29,7 @@ class PricerAPI:
     def __call__(
         self,
         smiles: str,
-        source: Optional[Union[str, List[str]]] = None,
+        source: str | list[str] | None = None,
         canonicalize: bool = False,
         url: str = None
     ) -> Tuple[float, Optional[dict]]:
@@ -44,7 +44,10 @@ class PricerAPI:
 
         PricerInput(**input)                        # merely validate the input
         try:
-            response = self.session.post(url=url, json=input).json()
+            response = self.session.post(url=url, params=input).json()
+            if not response:                        # not found
+                return 0.0, None
+
             PricerResponse(**response)              # merely validate the response
         except requests.ConnectionError as e:
             # Handle the connection error appropriately

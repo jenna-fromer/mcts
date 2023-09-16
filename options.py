@@ -9,7 +9,7 @@ class RetroBackendOption(BaseModel):
     retro_model_name: str = "reaxys"
     max_num_templates: int = 100
     max_cum_prob: float = 0.995
-    attribute_filter: List[Dict[str, Any]] = None
+    attribute_filter: List[Dict[str, Any]] = []
 
 
 class ClusterSetting(BaseModel):
@@ -29,15 +29,15 @@ class ExpandOneOptions(BaseModel):
     known_bad_reactions: List[str] = []
 
     # v2 tree builder fields
-    template_max_count: int
-    template_max_cum_prob: float
-    banned_chemicals: List[str]
-    banned_reactions: List[str]
+    template_max_count: int | None
+    template_max_cum_prob: float | None
+    banned_chemicals: List[str] | None
+    banned_reactions: List[str] | None
 
     retro_backend_options: List[RetroBackendOption] = [RetroBackendOption()]
     use_fast_filter: bool = True
     filter_threshold: float = 0.75
-    retro_rerank_backend: Optional[str] = None
+    retro_rerank_backend: str | None = None
     cluster_precursors: bool = False
     cluster_setting: ClusterSetting = None
     extract_template: bool = False
@@ -74,7 +74,7 @@ class BuildTreeOptions(BaseModel):
     max_reactions: Optional[int] = None
     max_templates: Optional[int] = None
     max_branching: int = 25
-    max_depth: int = 10
+    max_depth: int = 5
     exploration_weight: float = 1.0
     return_first: bool = False
     max_trees: Optional[int] = None

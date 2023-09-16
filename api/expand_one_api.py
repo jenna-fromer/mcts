@@ -1,7 +1,7 @@
 import requests
 import traceback as tb
 from options import ClusterSetting, ExpandOneOptions, RetroBackendOption
-from pydantic import BaseModel
+from pydantic import BaseModel, error_wrappers
 from typing import Any, Dict, List, Optional
 
 
@@ -80,7 +80,9 @@ class ExpandOneAPI:
 
         input = {
             "smiles": smiles,
-            "retro_backend_options": retro_backend_options,
+            "retro_backend_options": [
+                option.dict() for option in retro_backend_options
+            ],
             "banned_chemicals": expand_one_options.banned_chemicals,
             "banned_reactions": expand_one_options.banned_reactions,
             "use_fast_filter": expand_one_options.use_fast_filter,
@@ -92,6 +94,9 @@ class ExpandOneAPI:
             "return_reacting_atoms": expand_one_options.return_reacting_atoms,
             "selectivity_check": expand_one_options.selectivity_check
         }
+        # additional validation. Sending null/none value to FastAPI seems to
+        # fail the validation check and break the defaulting mechanism
+        input = {k: v for k, v in input.items() if v is not None}
 
         ExpandOneInput(**input)                     # merely validate the input
         try:
@@ -103,6 +108,12 @@ class ExpandOneAPI:
             tb.print_exc()
 
             return None
+        except error_wrappers.ValidationError:
+            tb.print_exc()
+            print(response)
+
+            return None
+
         except Exception:
             # Handle any other exception that might occur
             print("An error occurred for ExpandOneAPI:")

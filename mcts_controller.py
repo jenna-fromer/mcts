@@ -165,7 +165,7 @@ class MCTS:
         """
         purchase_price, properties = self.pricer(
             smiles=smiles,
-            source=self.build_tree_options.buyable_source,
+            source=self.build_tree_options.buyables_source,
             canonicalize=False
         )
 
@@ -230,13 +230,13 @@ class MCTS:
             visit_count=1
         )
 
-    def is_reaction_done(self, smiles: str):
+    def is_reaction_done(self, smiles: str) -> bool:
         """
         Determine if the specified reaction node should be expanded further.
 
         Reaction nodes are done when all of its children chemicals are done.
         """
-        return all(c["done"] for c in self.tree.successors(smiles))
+        return all(self.tree.nodes[c]["done"] for c in self.tree.successors(smiles))
 
     def build_tree(
         self,
@@ -254,6 +254,9 @@ class MCTS:
 
         while elapsed_time < self.build_tree_options.expansion_time and not self.done:
             chem_path, rxn_path = self._select()
+            if not chem_path and not rxn_path:
+                # backtracked to the root, which means no path was found
+                break
             self._expand(chem_path)
             self._update(chem_path, rxn_path)
 
@@ -270,11 +273,12 @@ class MCTS:
                 print(f"Found first pathway after {elapsed_time:.2f} seconds.")
                 if self.build_tree_options.return_first:
                     print("Stopping expansion to return first pathway.")
+                    break
 
         print("Tree expansion complete.")
         self.print_stats()
 
-    def _select(self) -> Tuple[List[str], List[str]]:
+    def _select(self) -> tuple[list[str], list[str]]:
         """
         Select next unexpanded leaf node to be expanded.
 
@@ -306,15 +310,20 @@ class MCTS:
                 # There are no valid options from this chemical node, need to backtrack
                 invalid_options.add(leaf)
                 del chem_path[-1]
-                del rxn_path[-1]
+                try:
+                    del rxn_path[-1]
+                except IndexError:      # no more options at the root; terminate
+                    return [], []
                 continue
 
             score, reaction = options[0]
             # With ASKCOSv2 refactor, a reaction would always have been *explored*
+            # If there are multiple reactants, pick the one with the lower visit count
+            # Do not consider chemicals that are already done or chemicals that are on the path
             precursor = min(
                 (
                     c for c in self.tree.successors(reaction)
-                    if not c["done"] and c not in invalid_options
+                    if not self.tree.nodes[c]["done"] and c not in invalid_options
                 ),
                 key=lambda _node: self.tree.nodes[_node]["visit_count"],
                 default=None
@@ -352,7 +361,7 @@ class MCTS:
             if (
                 rxn in invalid_options
                 # Simplified is_reaction_done
-                or all(c["done"] for c in self.tree.successors(rxn))
+                or all(self.tree.nodes[c]["done"] for c in self.tree.successors(rxn))
                 or len(set(self.tree.successors(rxn)) & set(chem_path)) > 0     # FIXME: why this condition
             ):
                 continue
@@ -361,7 +370,7 @@ class MCTS:
             node_visits = rxn_data["visit_count"]
             # normalized_score is a generalized version of template score,
             # which would have been handled/computed by the retro controller
-            rxn_probability = rxn_data["normalized_score"]
+            rxn_probability = rxn_data["rxn_score_from_model"]
 
             # Q represents how good a move is
             q_sa = rxn_probability * est_value / node_visits
@@ -372,6 +381,8 @@ class MCTS:
 
             # The options here are to follow a reaction down one level
             options.append((score, rxn))
+            # print(f"score: {score}, rxn: {rxn},
+            # est_value: {est_value}, prob: {rxn_probability}")
 
         # Sort options from highest to lowest score
         options.sort(key=lambda x: x[0], reverse=True)
@@ -463,14 +474,18 @@ class MCTS:
                 else i
             )
             # simplified update logic from is_chemical_done()
-            if not chem_data["done"]:
-                chem_data["done"] = (
-                    chem_data["min_depth"] < self.build_tree_options.max_depth
-                    and
-                    chem_data["expanded"]
-                    and
-                    all(self.is_reaction_done(r) for r in self.tree.successors(chem))
-                )
+            if chem_data["done"]:
+                done = True
+            elif chem_data["min_depth"] >= self.build_tree_options.max_depth:
+                done = True
+            elif (
+                sum(self.is_reaction_done(r) for r in self.tree.successors(chem))
+                >= self.build_tree_options.max_branching
+            ):
+                done = True
+            else:
+                done = False
+            chem_data["done"] = done
 
             if rxn is not None:
                 rxn_data = self.tree.nodes[rxn]
@@ -498,10 +513,13 @@ class MCTS:
             chem_data["est_value"] += est_value
 
             # Check if this node is solved
-            solved = rxn_data["solved"] or all(
-                self.tree.nodes[c]["solved"] for c in self.tree.successors(smiles)
-            )
-            chem_data["solved"] = rxn_data["solved"] = solved
+            if not rxn_data["solved"]:
+                rxn_data["solved"] = all(
+                    self.tree.nodes[c]["solved"] for c in self.tree.successors(smiles)
+                )
+            # propagate to the parent chemical node
+            if not chem_data["solved"]:
+                chem_data["solved"] = rxn_data["solved"]
 
     def enumerate_paths(self) -> List:
         """

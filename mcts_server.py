@@ -22,13 +22,13 @@ base_response = {
 
 
 def parse_args():
-    parser = argparse.ArgumentParser("expand_one_server")
+    parser = argparse.ArgumentParser("mcts_server")
     parser.add_argument("--server_ip",
                         help="Server IP to use", type=str, default="0.0.0.0")
     parser.add_argument("--server_port",
-                        help="Server port to use", type=int, default=9301)
+                        help="Server port to use", type=int, default=9311)
     parser.add_argument("--log_file",
-                        help="Log file", type=str, default="expand_one_server")
+                        help="Log file", type=str, default="mcts_server")
 
     return parser.parse_args()
 
