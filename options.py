@@ -1,5 +1,5 @@
 import pydantic
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Any, Dict, List, Literal, Optional, Union
 from utils import canonicalize
 
@@ -22,17 +22,11 @@ class ClusterSetting(BaseModel):
 
 
 class ExpandOneOptions(BaseModel):
-    # v1 tree builder fields for backward compatibility
-    template_count: int = 100
-    max_cum_template_prob: float = 0.995
-    forbidden_molecules: List[str] = []
-    known_bad_reactions: List[str] = []
-
-    # v2 tree builder fields
-    template_max_count: int | None
-    template_max_cum_prob: float | None
-    banned_chemicals: List[str] | None
-    banned_reactions: List[str] | None
+    # aliasing to v1 fields
+    template_max_count: int = Field(default=100, alias="template_count")
+    template_max_cum_prob: int = Field(default=0.995, alias="max_cum_template_prob")
+    banned_chemicals: List[str] = Field(default=[], alias="forbidden_molecules")
+    banned_reactions: List[str] = Field(default=[], alias="known_bad_reactions")
 
     retro_backend_options: List[RetroBackendOption] = [RetroBackendOption()]
     use_fast_filter: bool = True
@@ -43,28 +37,6 @@ class ExpandOneOptions(BaseModel):
     extract_template: bool = False
     return_reacting_atoms: bool = True
     selectivity_check: bool = False
-
-    @pydantic.validator("template_max_count", pre=True, always=True)
-    def template_max_count_alias(cls, v: int, *, values: Dict[str, Any]) -> int:
-        return v or values["template_count"]
-
-    @pydantic.validator("template_max_cum_prob", pre=True, always=True)
-    def template_max_cum_prob_alias(cls, v: int, *, values: Dict[str, Any]) -> float:
-        return v or values["max_cum_template_prob"]
-
-    @pydantic.validator("banned_chemicals", pre=True, always=True)
-    def banned_chemicals_alias(cls, v: List[str], *, values: Dict[str, Any]) -> List[str]:
-        banned_chemicals = v or values["forbidden_molecules"]
-        banned_chemicals = list(set(canonicalize(smi) for smi in banned_chemicals))
-
-        return banned_chemicals
-
-    @pydantic.validator("banned_reactions", pre=True, always=True)
-    def banned_reactions_alias(cls, v: List[str], *, values: Dict[str, Any]) -> List[str]:
-        banned_reactions = v or values["known_bad_reactions"]
-        banned_reactions = list(set(canonicalize(smi) for smi in banned_reactions))
-
-        return banned_reactions
 
 
 class BuildTreeOptions(BaseModel):
@@ -104,3 +76,4 @@ class EnumeratePathsOptions(BaseModel):
     min_samples: int = 5
     min_cluster_size: int = 5
     paths_only: bool = False
+    max_paths: int = 200

@@ -2,6 +2,7 @@ import itertools
 import networkx as nx
 import numpy as np
 import os
+import random
 import time
 from api.expand_one_api import ExpandOneAPI
 from api.historian_api import HistorianAPI
@@ -215,7 +216,8 @@ class MCTS:
         smiles: str,
         template_tuple: Optional[Tuple[str, str]],
         rxn_score_from_model: float,
-        plausibility: float
+        plausibility: float,
+        num_examples: int
     ):
         """Create a new reaction node from the provided smiles and data."""
         self.reactions.append(smiles)
@@ -225,7 +227,8 @@ class MCTS:
             plausibility=plausibility,
             solved=False,       # whether a path to terminal leaves has been found from this node
             rxn_score_from_model=rxn_score_from_model,
-            templates=[template_tuple] if template_tuple is not None else [],
+            num_examples=num_examples,
+            template_tuples=[template_tuple] if template_tuple is not None else [],
             type="reaction",
             visit_count=1
         )
@@ -407,27 +410,35 @@ class MCTS:
             try:
                 template = result["template"]
                 template_tuple = (template["index"], template["template_set"])
-            except KeyError:
+                num_examples = template["num_examples"]
+            except (KeyError, TypeError):
                 # try-except just for backward compatibility
                 template_tuple = None
+                num_examples = 0
 
             if reaction_smiles in self.reactions:
                 # This Reaction node already exists
                 rxn_data = self.tree.nodes[reaction_smiles]
-                if template_tuple is not None:
-                    rxn_data["templates"].append(template_tuple)
+                if (
+                    template_tuple is not None
+                    and template_tuple not in rxn_data["templates"]
+                ):
+                    rxn_data["template_tuples"].append(template_tuple)
+                    rxn_data["num_examples"] += num_examples
 
                 # retro controller now computes normalized_model_score
                 rxn_data["rxn_score_from_model"] = max(
                     rxn_data["rxn_score_from_model"], result["normalized_model_score"]
                 )
+
             else:
                 # This is new, so create a Reaction node
                 self.create_reaction_node(
                     smiles=reaction_smiles,
                     template_tuple=template_tuple,
                     rxn_score_from_model=result["normalized_model_score"],
-                    plausibility=result["plausibility"]
+                    plausibility=result["plausibility"],
+                    num_examples=num_examples
                 )
 
             # Add edges to connect target -> reaction -> precursors
@@ -543,6 +554,11 @@ class MCTS:
         )
 
         print(f"Found {len(self.paths)} paths to buyable chemicals.")
+        max_paths = self.enumerate_paths_options.max_paths
+        if len(self.paths) > max_paths:
+            print(f"Number of paths exceeds max_paths {max_paths}, down sampling")
+            random.shuffle(self.paths)
+            self.paths = self.paths[:max_paths]
 
         path_format = self.enumerate_paths_options.path_format
         json_format = self.enumerate_paths_options.json_format
