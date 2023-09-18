@@ -53,7 +53,9 @@ def mcts_service(request: RequestBody):
             enumerate_paths_options=request.enumerate_paths_options
         )
         if request.enumerate_paths_options.paths_only:
-            results = paths
+            results = {
+                "paths": paths
+            }
         else:
             results = {
                 "stats": stats,
