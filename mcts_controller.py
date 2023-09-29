@@ -186,7 +186,9 @@ class MCTS:
             hist=hist,
             properties=properties
         )
-        est_value = 1.0 if terminal else 0.0
+        est_value_sum = 1.0 if terminal else 0.0
+        est_value_cnt = 1
+        est_value = est_value_sum / est_value_cnt
 
         self.chemicals.append(smiles)
         # *terminal* is like a static property, e.g., buyable
@@ -199,7 +201,9 @@ class MCTS:
             smiles,
             as_reactant=hist["as_reactant"],
             as_product=hist["as_product"],
-            est_value=est_value,    # total value of node
+            est_value_sum=est_value_sum,        # total value of node
+            est_value_cnt=est_value_cnt,        # total visit count of node
+            est_value=est_value,                # average value of node
             min_depth=None,         # minimum depth at which this chemical appears
             properties=properties,  # properties from buyables database if any
             purchase_price=purchase_price,
@@ -521,7 +525,14 @@ class MCTS:
 
             # Update estimated value of parent chemical
             chem_data = self.tree.nodes[next(self.tree.predecessors(smiles))]
-            chem_data["est_value"] += est_value
+
+            # use running average rather than summation for est_value,
+            # to be more consistent with V1
+            # chem_data["est_value"] += est_value
+            chem_data["est_value_sum"] += est_value
+            chem_data["est_value_cnt"] += 1
+            chem_data["est_value"] = \
+                chem_data["est_value_sum"] / chem_data["est_value_cnt"]
 
             # Check if this node is solved
             if not rxn_data["solved"]:
