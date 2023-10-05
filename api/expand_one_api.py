@@ -78,6 +78,10 @@ class ExpandOneAPI:
             for option in expand_one_options.retro_backend_options:
                 option.max_cum_prob = expand_one_options.template_max_cum_prob
 
+        cluster_setting = expand_one_options.cluster_setting
+        if cluster_setting is not None:
+            cluster_setting = cluster_setting.dict()
+
         input = {
             "smiles": smiles,
             "retro_backend_options": [
@@ -89,7 +93,7 @@ class ExpandOneAPI:
             "fast_filter_threshold": expand_one_options.filter_threshold,
             "retro_rerank_backend": expand_one_options.retro_rerank_backend,
             "cluster_precursors": expand_one_options.cluster_precursors,
-            "cluster_setting": expand_one_options.cluster_setting,
+            "cluster_setting": cluster_setting,
             "extract_template": expand_one_options.extract_template,
             "return_reacting_atoms": expand_one_options.return_reacting_atoms,
             "selectivity_check": expand_one_options.selectivity_check
