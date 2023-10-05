@@ -17,7 +17,7 @@ app = FastAPI()
 base_response = {
     "status": "FAIL",
     "error": "",
-    "results": []
+    "results": {}
 }
 
 
@@ -70,10 +70,9 @@ def mcts_service(request: RequestBody):
         # V1 does create a controller per query. TODO: We'll optimize this later
         del controller
 
-    except Exception as e:
-        traceback.print_exc()
-        response["error"] = f"error during mcts, traceback: " \
-                            f"{traceback.print_tb(e.__traceback__)}"
+    except Exception:
+        response["error"] = f"Error during mcts, traceback: " \
+                            f"{traceback.format_exc()}"
 
     return response
 
