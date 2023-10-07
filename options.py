@@ -1,7 +1,5 @@
-import pydantic
 from pydantic import BaseModel, Field
 from typing import Any, Dict, List, Literal, Optional, Union
-from utils import canonicalize
 
 
 class RetroBackendOption(BaseModel):
@@ -49,7 +47,7 @@ class BuildTreeOptions(BaseModel):
     max_depth: int = 5
     exploration_weight: float = 1.0
     return_first: bool = False
-    max_trees: Optional[int] = None
+    max_trees: int = 500
     max_ppg: Optional[float] = None
     max_scscore: Optional[float] = None
     max_elements: Optional[Dict[str, int]] = None
