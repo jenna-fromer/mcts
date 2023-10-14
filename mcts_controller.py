@@ -17,22 +17,22 @@ from utils import get_graph_from_tree, is_terminal, nx_graph_to_paths, nx_paths_
 
 GATEWAY_URL = os.environ.get("GATEWAY_URL", "http://0.0.0.0:9100")
 expand_one = ExpandOneAPI(
-    default_url=f"{GATEWAY_URL}/api/tree_search/expand_one/call_sync_without_token",
+    default_url=f"{GATEWAY_URL}/api/tree-search/expand-one/call-sync-without-token",
 )
 historian = HistorianAPI(
-    default_url=f"{GATEWAY_URL}/api/historian/lookup_smiles"
+    default_url=f"{GATEWAY_URL}/api/historian/lookup-smiles"
 )
 pathway_ranker = PathwayRankerAPI(
-    url=f"{GATEWAY_URL}/api/pathway_ranker/call_sync"
+    url=f"{GATEWAY_URL}/api/pathway-ranker/call-sync"
 )
 pricer = PricerAPI(
-    default_url=f"{GATEWAY_URL}/api/pricer/lookup_smiles"
+    default_url=f"{GATEWAY_URL}/api/pricer/lookup-smiles"
 )
 reaction_classifier = ReactionClassificationAPI(
-    url=f"{GATEWAY_URL}/api/get_top_class_batch/call_sync"
+    url=f"{GATEWAY_URL}/api/get-top-class-batch/call-sync"
 )
 scscorer = SCScorerAPI(
-    default_url=f"{GATEWAY_URL}/api/scscore/call_sync"
+    default_url=f"{GATEWAY_URL}/api/scscore/call-sync"
 )
 
 
