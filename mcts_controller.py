@@ -221,7 +221,15 @@ class MCTS:
         template_tuple: Optional[Tuple[str, str]],
         rxn_score_from_model: float,
         plausibility: float,
-        num_examples: int
+        num_examples: int,
+        forward_score: Optional[float],
+        rms_molwt: Optional[float],
+        num_rings: Optional[int],
+        scscore: Optional[float],
+        rank: Optional[int],
+        score: Optional[float],
+        class_num,
+        class_name
     ):
         """Create a new reaction node from the provided smiles and data."""
         self.reactions.append(smiles)
@@ -232,6 +240,14 @@ class MCTS:
             solved=False,       # whether a path to terminal leaves has been found from this node
             rxn_score_from_model=rxn_score_from_model,
             num_examples=num_examples,
+            forward_score=forward_score,
+            rms_molwt=rms_molwt,
+            num_rings=num_rings,
+            scscore=scscore,
+            rank=rank,
+            score=score,
+            class_num=class_num,
+            class_name=class_name,
             template_tuples=[template_tuple] if template_tuple is not None else [],
             type="reaction",
             visit_count=1
@@ -442,7 +458,15 @@ class MCTS:
                     template_tuple=template_tuple,
                     rxn_score_from_model=result["normalized_model_score"],
                     plausibility=result["plausibility"],
-                    num_examples=num_examples
+                    num_examples=num_examples,
+                    forward_score=result.get("forward_score"),
+                    rms_molwt=result.get("rms_molwt"),
+                    num_rings=result.get("num_rings"),
+                    scscore=result.get("scscore"),
+                    rank=result.get("rank"),
+                    score=result.get("score", result["normalized_model_score"]),
+                    class_num=result.get("class_num"),
+                    class_name=result.get("class_name")
                 )
 
             # Add edges to connect target -> reaction -> precursors
