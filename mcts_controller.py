@@ -218,6 +218,10 @@ class MCTS:
     def create_reaction_node(
         self,
         smiles: str,
+        precursor_smiles: str,
+        tforms: Optional[List[str]],
+        tsources: Optional[List[str]],
+        necessary_reagent: Optional[str],
         template_tuple: Optional[Tuple[str, str]],
         rxn_score_from_model: float,
         plausibility: float,
@@ -249,6 +253,10 @@ class MCTS:
             class_num=class_num,
             class_name=class_name,
             template_tuples=[template_tuple] if template_tuple is not None else [],
+            precursor_smiles=precursor_smiles,
+            tforms=tforms,
+            tsources=tsources,
+            necessary_reagent=necessary_reagent,
             type="reaction",
             visit_count=1
         )
@@ -433,6 +441,7 @@ class MCTS:
                 num_examples = template["num_examples"]
             except (KeyError, TypeError):
                 # try-except just for backward compatibility
+                template = None
                 template_tuple = None
                 num_examples = 0
 
@@ -453,8 +462,20 @@ class MCTS:
 
             else:
                 # This is new, so create a Reaction node
+                tforms = template.get(
+                    "tforms") if isinstance(template, dict) else None
+                tsources = template.get(
+                    "template_set") if isinstance(template, dict) else None
+                if tsources is not None:
+                    tsources = [tsources] * len(tforms)
+                necessary_reagent = template.get(
+                    "necessary_reagent") if isinstance(template, dict) else None
                 self.create_reaction_node(
                     smiles=reaction_smiles,
+                    precursor_smiles=precursor_smiles,
+                    tforms=tforms,
+                    tsources=tsources,
+                    necessary_reagent=necessary_reagent,
                     template_tuple=template_tuple,
                     rxn_score_from_model=result["normalized_model_score"],
                     plausibility=result["plausibility"],
