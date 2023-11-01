@@ -35,3 +35,5 @@ RUN pip install \
 
 COPY . /ASKCOSv2/mcts
 WORKDIR /ASKCOSv2/mcts
+
+CMD ["python", "mcts_server.py"]
