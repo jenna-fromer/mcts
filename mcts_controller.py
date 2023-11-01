@@ -430,6 +430,9 @@ class MCTS:
             expand_one_options=self.expand_one_options
         )
 
+        if not retro_results:
+            return
+        
         for result in retro_results:
             precursor_smiles = result["outcome"]
             reaction_smiles = precursor_smiles + ">>" + leaf
