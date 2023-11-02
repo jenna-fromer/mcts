@@ -7,16 +7,12 @@ Serving module for MCTS Tree builder, based on ASKCOSv1 tree builder v2
 
 First set up the url to the remote registry
 ```
-export ASKCOS_REGISTRY=registry.gitlab.com/mlpds_mit/askcosv2
+export ASKCOS_REGISTRY=registry.gitlab.com/mlpds_mit/askcosv2/askcos2_core
 ```
 
 ### Using Docker
 
-- Option 1: pull pre-built image
-```
-docker pull ${ASKCOS_REGISTRY}/tree_search/mcts:1.0-cpu
-```
-- Option 2: build from local
+- Only option: build from local
 ```
 docker build -f Dockerfile_cpu -t ${ASKCOS_REGISTRY}/tree_search/mcts:1.0-cpu .
 ```

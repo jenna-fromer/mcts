@@ -1,5 +1,5 @@
 if [ -z "${ASKCOS_REGISTRY}" ]; then
-  export ASKCOS_REGISTRY=registry.gitlab.com/mlpds_mit/askcosv2
+  export ASKCOS_REGISTRY=registry.gitlab.com/mlpds_mit/askcosv2/askcos2_core
 fi
 
 docker run -d --rm \
