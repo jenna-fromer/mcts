@@ -85,7 +85,10 @@ PATH_KEY_DICT = {
     "scscore": "scscore",
     "rank": "rank",
     "class_num": "class_num",
-    "class_name": "class_name"
+    "class_name": "class_name",
+    "template": "template",
+    "retro_backend": "retro_backend",
+    "retro_model_name": "retro_model_name"
 }
 
 

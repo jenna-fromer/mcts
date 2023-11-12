@@ -233,7 +233,10 @@ class MCTS:
         rank: Optional[int],
         score: Optional[float],
         class_num,
-        class_name
+        class_name,
+        template,
+        retro_backend,
+        retro_model_name
     ):
         """Create a new reaction node from the provided smiles and data."""
         self.reactions.append(smiles)
@@ -258,7 +261,10 @@ class MCTS:
             tsources=tsources,
             necessary_reagent=necessary_reagent,
             type="reaction",
-            visit_count=1
+            visit_count=1,
+            template=template,
+            retro_backend=retro_backend,
+            retro_model_name=retro_model_name
         )
 
     def is_reaction_done(self, smiles: str) -> bool:
@@ -490,7 +496,10 @@ class MCTS:
                     rank=result.get("rank"),
                     score=result.get("score", result["normalized_model_score"]),
                     class_num=result.get("class_num"),
-                    class_name=result.get("class_name")
+                    class_name=result.get("class_name"),
+                    template=template,
+                    retro_backend=result.get("retro_backend"),
+                    retro_model_name=result.get("retro_model_name")
                 )
 
             # Add edges to connect target -> reaction -> precursors
