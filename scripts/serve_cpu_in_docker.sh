@@ -4,5 +4,6 @@ fi
 
 docker run -d --rm \
   --name mcts \
+  --env GATEWAY_URL="$GATEWAY_URL" \
   --network=host \
   -t ${ASKCOS_REGISTRY}/tree_search/mcts:1.0-cpu
