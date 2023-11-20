@@ -104,7 +104,7 @@ class ExpandOneAPI:
 
         ExpandOneInput(**input)                     # merely validate the input
         try:
-            response = self.session.post(url=url, json=input).json()
+            response = self.session.post(url=url, json=input, verify=False).json()
             ExpandOneResponse(**response)           # merely validate the response
         except requests.exceptions.ConnectionError:
             # Handle the connection error appropriately

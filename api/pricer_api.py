@@ -44,7 +44,7 @@ class PricerAPI:
 
         PricerInput(**input)                        # merely validate the input
         try:
-            response = self.session.post(url=url, params=input).json()
+            response = self.session.post(url=url, params=input, verify=False).json()
             if not response:                        # not found
                 return 0.0, None
 

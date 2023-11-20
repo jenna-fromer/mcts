@@ -51,7 +51,7 @@ class PathwayRankerAPI:
         }
 
         PathwayRankerInput(**input)             # merely validate the input
-        response = self.session.post(url=url, json=input).json()
+        response = self.session.post(url=url, json=input, verify=False).json()
         PathwayRankerResponse(**response)       # merely validate the response
 
         result = response["result"]

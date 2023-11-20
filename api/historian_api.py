@@ -41,7 +41,7 @@ class HistorianAPI:
 
         HistorianInput(**input)                     # merely validate the input
         try:
-            response = self.session.post(url=url, params=input).json()
+            response = self.session.post(url=url, params=input, verify=False).json()
             HistorianResponse(**response)           # merely validate the response
         except requests.ConnectionError as e:
             # Handle the connection error appropriately
