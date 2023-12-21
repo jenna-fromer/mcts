@@ -2,7 +2,13 @@ if [ -z "${ASKCOS_REGISTRY}" ]; then
   export ASKCOS_REGISTRY=registry.gitlab.com/mlpds_mit/askcosv2/askcos2_core
 fi
 
-docker run -d --rm \
+if [ "$(docker ps -aq -f status=exited -f name=^mcts$)" ]; then
+  # cleanup if container died;
+  # otherwise it would've been handled by make stop already
+  docker rm mcts
+fi
+
+docker run -d \
   --name mcts \
   --env GATEWAY_URL="$GATEWAY_URL" \
   --network=host \
