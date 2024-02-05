@@ -71,11 +71,18 @@ class ExpandOneAPI:
 
         # Overriding backend option fields if provided in expand_one_options
         retro_backend_options = expand_one_options.retro_backend_options
-        if expand_one_options.template_max_count:
-            for option in expand_one_options.retro_backend_options:
+        # if expand_one_options.template_max_count:
+        #     for option in expand_one_options.retro_backend_options:
+        #         option.max_num_templates = expand_one_options.template_max_count
+        # if expand_one_options.template_max_cum_prob:
+        #     for option in expand_one_options.retro_backend_options:
+        #         option.max_cum_prob = expand_one_options.template_max_cum_prob
+
+        # Modify the overriding logic to apply only if not provided for each option
+        for option in expand_one_options.retro_backend_options:
+            if not option.max_num_templates and expand_one_options.template_max_count:
                 option.max_num_templates = expand_one_options.template_max_count
-        if expand_one_options.template_max_cum_prob:
-            for option in expand_one_options.retro_backend_options:
+            if not option.max_cum_prob and expand_one_options.template_max_cum_prob:
                 option.max_cum_prob = expand_one_options.template_max_cum_prob
 
         cluster_setting = expand_one_options.cluster_setting
