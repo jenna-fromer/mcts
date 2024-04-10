@@ -9,6 +9,10 @@ class RetroBackendOption(BaseModel):
     max_cum_prob: float = 0.995
     attribute_filter: List[Dict[str, Any]] = []
 
+    # For retrosim only
+    threshold: float = 0.3
+    top_k: int = 10
+
 
 class ClusterSetting(BaseModel):
     feature: str = "original"

@@ -11,6 +11,8 @@ class RetroResult(BaseModel):
     model_score: float
     normalized_model_score: float
     template: Optional[Dict[str, Any]]
+    reaction_id: Optional[str]
+    reaction_set: Optional[str]
 
     # extended from postprocessing in expand_one_controller
     retro_backend: str
