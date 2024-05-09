@@ -156,6 +156,7 @@ class MCTS:
         self.tree.nodes[self.target]["terminal"] = False
         self.tree.nodes[self.target]["solved"] = False
         self.tree.nodes[self.target]["done"] = False
+        self.tree.nodes[self.target]["min_depth"] = 0
 
     def create_chemical_node(self, smiles: str) -> None:
         """
@@ -331,12 +332,33 @@ class MCTS:
 
         while True:
             leaf = chem_path[-1]
-            if not self.tree.nodes[leaf]["expanded"]:
-                # Termination criteria for selection; found an unexpanded node
+
+            self.tree.nodes[leaf]["min_depth"] = min(self.tree.nodes[leaf]["min_depth"], len(chem_path)-1) # update min_depth
+
+            if len(chem_path) <= self.build_tree_options.max_depth and not self.tree.nodes[leaf]["expanded"]:
+                # Termination criteria for selection; found an unexpanded node at max_depth-1 or higher
                 # "done" nodes (including "terminal" ones) would have been excluded
                 # when choosing the min precursor
-                break
 
+                #print("Reached unexpanded node, breaking out of while loop", leaf)
+                break
+            
+
+            elif len(chem_path) >= self.build_tree_options.max_depth:
+
+                # if chem_path is at max depth and the leaf node has already been expanded, 
+                # need to backtrack since expanding the leaf node would exceed max_depth
+                #print("Removing leaf due to max_depth", leaf)
+                # max depth reached, need to backtrack
+                invalid_options.add(leaf)
+                del chem_path[-1]
+                try:
+                    del rxn_path[-1]
+                except IndexError: # no more options at the root; terminate
+                    return [], []
+                continue
+            
+            # continue to add to path if len(chem_path) < self.build_tree_options.max_depth (i.e. depth of current node<max_depth-1)
             options = self.ucb(
                 node=leaf,
                 chem_path=chem_path,
@@ -435,8 +457,11 @@ class MCTS:
             smiles=leaf,
             expand_one_options=self.expand_one_options
         )
-
+        # moved so that expanded nodes without retro_results are also marked "expanded" 
+        self.tree.nodes[leaf]["expanded"] = True
         if not retro_results:
+            # if no retro_results, then this node is done
+            self.tree.nodes[leaf]["done"] = True
             return
         
         for result in retro_results:
@@ -509,10 +534,11 @@ class MCTS:
                     # This is new, so create a Chemical node
                     self.create_chemical_node(smiles=reactant)
                 self.tree.add_edge(reaction_smiles, reactant)
+                # initialize/change min_depth for reactants 
+                self.tree.nodes[reactant]['min_depth'] = int(nx.shortest_path_length(self.tree, source=self.target, target=reactant)/2)
             # This _update_value only updates reactions *below* leaf
             self._update_value(reaction_smiles)
 
-        self.tree.nodes[leaf]["expanded"] = True
 
     def _update(self, chem_path: List[str], rxn_path: List[str]) -> None:
         """
@@ -540,6 +566,7 @@ class MCTS:
         ):
             chem_data = self.tree.nodes[chem]
             chem_data["visit_count"] += 1
+            # updates min_depth for chemicals in the pathway
             chem_data["min_depth"] = (
                 min(chem_data["min_depth"], i)
                 if chem_data["min_depth"] is not None
@@ -548,11 +575,14 @@ class MCTS:
             # simplified update logic from is_chemical_done()
             if chem_data["done"]:
                 done = True
-            elif chem_data["min_depth"] >= self.build_tree_options.max_depth:
-                done = True
+            # min_depth can change - chemical only "done" if all of its children reactions are done 
+            # elif chem_data["min_depth"] >= self.build_tree_options.max_depth: 
+            #     done = True
+
+            # chemical is done if all or at least max_branching children reactions are "done"
             elif (
                 sum(self.is_reaction_done(r) for r in self.tree.successors(chem))
-                >= self.build_tree_options.max_branching
+                >= min(self.build_tree_options.max_branching, self.tree.out_degree(chem))
             ):
                 done = True
             else:
