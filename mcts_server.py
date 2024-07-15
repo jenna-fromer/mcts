@@ -74,7 +74,6 @@ def mcts_service(request: RequestBody):
         response["error"] = f"Error during mcts, traceback: " \
                             f"{traceback.format_exc()}"
         traceback.print_exc()
-
     return response
 
 

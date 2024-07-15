@@ -88,7 +88,8 @@ PATH_KEY_DICT = {
     "class_name": "class_name",
     "template": "template",
     "retro_backend": "retro_backend",
-    "retro_model_name": "retro_model_name"
+    "retro_model_name": "retro_model_name", 
+    "models_predicted_by": "models_predicted_by",
 }
 
 

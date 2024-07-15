@@ -17,6 +17,7 @@ class RetroResult(BaseModel):
     # extended from postprocessing in expand_one_controller
     retro_backend: str
     retro_model_name: str
+    models_predicted_by: list[tuple[str, str, float]]
     plausibility: Optional[float]
     rms_molwt: float
     num_rings: int
