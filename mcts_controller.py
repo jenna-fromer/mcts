@@ -237,7 +237,8 @@ class MCTS:
         class_name,
         template,
         retro_backend,
-        retro_model_name
+        retro_model_name, 
+        models_predicted_by
     ):
         """Create a new reaction node from the provided smiles and data."""
         self.reactions.append(smiles)
@@ -265,7 +266,8 @@ class MCTS:
             visit_count=1,
             template=template,
             retro_backend=retro_backend,
-            retro_model_name=retro_model_name
+            retro_model_name=retro_model_name,
+            models_predicted_by=models_predicted_by
         )
 
     def is_reaction_done(self, smiles: str) -> bool:
@@ -484,7 +486,7 @@ class MCTS:
                 rxn_data = self.tree.nodes[reaction_smiles]
                 if (
                     template_tuple is not None
-                    and template_tuple not in rxn_data["templates"]
+                    and template_tuple not in rxn_data["template_tuples"]
                 ):
                     rxn_data["template_tuples"].append(template_tuple)
                     rxn_data["num_examples"] += num_examples
@@ -499,9 +501,8 @@ class MCTS:
                 tforms = template.get(
                     "tforms") if isinstance(template, dict) else None
                 tsources = template.get(
-                    "template_set") if isinstance(template, dict) else None
-                if tsources is not None:
-                    tsources = [tsources] * len(tforms)
+                    "tsources") if isinstance(template, dict) else None
+
                 necessary_reagent = template.get(
                     "necessary_reagent") if isinstance(template, dict) else None
                 self.create_reaction_node(
@@ -524,7 +525,8 @@ class MCTS:
                     class_name=result.get("class_name"),
                     template=template,
                     retro_backend=result.get("retro_backend"),
-                    retro_model_name=result.get("retro_model_name")
+                    retro_model_name=result.get("retro_model_name"),
+                    models_predicted_by=result.get("models_predicted_by")
                 )
 
             # Add edges to connect target -> reaction -> precursors
