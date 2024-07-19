@@ -4,6 +4,7 @@ import numpy as np
 import operator
 import time
 import uuid
+import heapq
 from api.pathway_ranker_api import PathwayRankerAPI
 from api.scscorer_api import SCScorerAPI
 from collections import defaultdict
@@ -542,7 +543,18 @@ def sort_paths(paths: List, metric: str) -> List:
         )
 
     if metric == "plausibility":
-        paths = sorted(paths, key=lambda x: overall_plausibility(x), reverse=True)
+        # paths = sorted(paths, key=lambda x: overall_plausibility(x), reverse=True)
+
+        heap = []
+        for x in paths:
+            u = overall_plausibility(x)
+            if len(heap) < n_paths:
+                heapq.heappush(heap, (u, id(x), x))
+            else:
+                heapq.heappushpop(heap, (u, id(x), x))
+        
+        paths = [x for _, _, x in heap]
+
     elif metric == "number_of_starting_materials":
         paths = sorted(paths, key=lambda x: number_of_starting_materials(x))
     elif metric == "number_of_reactions":
