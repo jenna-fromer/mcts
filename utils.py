@@ -629,16 +629,17 @@ def nx_graph_to_paths(
     )       # returns generator
 
     if score_trees or sorting_metric == "score":
-        paths = score_paths(
-            paths,
-            cluster_trees=cluster_trees,
-            pathway_ranker=pathway_ranker,
-            cluster_method=cluster_method,
-            min_samples=min_samples,
-            min_cluster_size=min_cluster_size
-        )  # returns list
+        # paths = score_paths(
+        #     paths,
+        #     cluster_trees=cluster_trees,
+        #     pathway_ranker=pathway_ranker,
+        #     cluster_method=cluster_method,
+        #     min_samples=min_samples,
+        #     min_cluster_size=min_cluster_size
+        # )  # returns list
+        paths = []
 
-    paths = sort_paths(paths, sorting_metric)  # returns list
+    paths = [] # sort_paths(paths, sorting_metric)  # returns list
 
     return paths, root_uuid
 
